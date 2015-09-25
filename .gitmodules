@@ -1,0 +1,6 @@
+[submodule "tasks/ansible-tasks-docker-image"]
+	path = tasks/ansible-tasks-docker-image
+	url = https://github.com/gitinsky/ansible-tasks-docker-image.git
+[submodule "filter_plugins"]
+	path = filter_plugins
+	url = https://github.com/gitinsky/ansible-filter_plugins

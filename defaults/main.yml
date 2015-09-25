@@ -1,0 +1,2 @@
+ext_samba_volume: /var/lib/docker-extvols/samba
+docker_dns_servers: []

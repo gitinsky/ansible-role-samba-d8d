@@ -1,0 +1,54 @@
+---
+- name: create required directories
+  file: state=directory name={{ item }}
+  with_items:
+      - /root/samba-d8d
+      - "{{ ext_samba_volume }}/conf"
+      - "{{ ext_samba_volume }}/log"
+
+- name: create anonymous share
+  file: state=directory name={{ ext_samba_volume }}/shares/anonymous owner=nobody group=nogroup
+
+- name: put Dockerfile and samba.rb
+  template: src={{ item }} dest=/root/samba-d8d/{{ item }}
+  with_items:
+    - samba.rb
+    - Dockerfile
+
+- set_fact:
+     image_build_name: gitinsky/samba
+     image_build_path: /root/samba-d8d
+
+- include: ansible-tasks-docker-image/image_build.yml
+
+- name: put samba configuration
+  template: src=smb.conf dest={{ ext_samba_volume }}/conf/smb.conf
+
+- name: start an samba container
+  docker:
+    image: gitinsky/samba:latest
+    state: reloaded
+    hostname: "samba-{{ ansible_hostname }}"
+    dns: "{{ docker_dns_servers }}"
+    expose:
+      - "445"
+      - "137"
+      - "138"
+      - "139"
+      - "137/udp"
+      - "138/udp"
+      - "139/udp"
+    ports:
+        - "{{ samba_listen_address + ':' if samba_listen_address is defined else '' }}445:445"
+        - "{{ samba_listen_address + ':' if samba_listen_address is defined else '' }}137:137"
+        - "{{ samba_listen_address + ':' if samba_listen_address is defined else '' }}138:138"
+        - "{{ samba_listen_address + ':' if samba_listen_address is defined else '' }}139:139"
+        - "{{ samba_listen_address + ':' if samba_listen_address is defined else '' }}137:137/udp"
+        - "{{ samba_listen_address + ':' if samba_listen_address is defined else '' }}138:138/udp"
+        - "{{ samba_listen_address + ':' if samba_listen_address is defined else '' }}139:139/udp"
+    volumes:
+      - "{{ ext_samba_volume }}/shares:/shares"
+      - "{{ ext_samba_volume }}/conf/smb.conf:/etc/samba/smb.conf"
+      - "{{ ext_samba_volume }}/log:/var/log/samba"
+    name: samba
+    restart_policy: always

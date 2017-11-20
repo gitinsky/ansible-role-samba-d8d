@@ -19,7 +19,7 @@
      image_build_name: gitinsky/samba
      image_build_path: /root/samba-d8d
 
-- include: ansible-tasks-docker-image/image_build.yml
+- include_tasks: ansible-tasks-docker-image/image_build.yml
 
 - name: put samba configuration
   template: src=smb.conf dest={{ ext_samba_volume }}/conf/smb.conf
